@@ -1,0 +1,55 @@
+{"timestamp": "2026-06-15 17:19:16", "level": "INFO", "logger": "ModelTrainer", "message": "Starting ML Anomaly model training..."}
+{"timestamp": "2026-06-15 17:19:16", "level": "INFO", "logger": "ModelTrainer", "message": "Generated 2000 synthetic log entries for training."}
+{"timestamp": "2026-06-15 17:19:17", "level": "INFO", "logger": "ModelTrainer", "message": "Model fitted successfully. Detected 80 anomalies in training set."}
+{"timestamp": "2026-06-15 17:19:17", "level": "INFO", "logger": "ModelTrainer", "message": "Model saved to: ml_engine/models/anomaly_detector.pkl"}
+{"timestamp": "2026-06-15 17:19:17", "level": "INFO", "logger": "ModelTrainer", "message": "Vectorizer saved to: ml_engine/models/tfidf_vectorizer.pkl"}
+{"timestamp": "2026-06-15 17:19:50", "level": "INFO", "logger": "ModelTrainer", "message": "Starting ML Anomaly model training..."}
+{"timestamp": "2026-06-15 17:19:50", "level": "INFO", "logger": "ModelTrainer", "message": "Generated 2000 synthetic log entries for training."}
+{"timestamp": "2026-06-15 17:19:50", "level": "INFO", "logger": "ModelTrainer", "message": "Model fitted successfully. Detected 80 anomalies in training set."}
+{"timestamp": "2026-06-15 17:19:50", "level": "INFO", "logger": "ModelTrainer", "message": "Model saved to: ml_engine/models/anomaly_detector.pkl"}
+{"timestamp": "2026-06-15 17:19:50", "level": "INFO", "logger": "ModelTrainer", "message": "Vectorizer saved to: ml_engine/models/tfidf_vectorizer.pkl"}
+{"timestamp": "2026-06-15 17:19:55", "level": "INFO", "logger": "TestHistoryDB", "message": "SQLite Test History Database initialized."}
+{"timestamp": "2026-06-15 17:19:55", "level": "INFO", "logger": "TestFixture", "message": "C++ binary not found. Launching Python emulator fallback from: C:\\Users\\NADAF SISTERS\\Desktop\\shagfta visual studio code\\AI_AGENTIC_APP\\Electronics_Projects\\Project_1\\embedded_app\\device_emulator.py"}
+{"timestamp": "2026-06-15 17:19:56", "level": "INFO", "logger": "DeviceClient", "message": "Connected to simulated console at 127.0.0.1:50007"}
+{"timestamp": "2026-06-15 17:19:56", "level": "INFO", "logger": "TestRunner", "message": "--- Starting Test: Boot Sequence Validation ---"}
+{"timestamp": "2026-06-15 17:19:56", "level": "INFO", "logger": "TestRunner", "message": "Description: Verifies correct boot transitions and timings"}
+{"timestamp": "2026-06-15 17:19:56", "level": "INFO", "logger": "TestRunner", "message": "Attempt 1/2..."}
+{"timestamp": "2026-06-15 17:19:56", "level": "INFO", "logger": "DeviceClient", "message": "Triggering target system reboot..."}
+{"timestamp": "2026-06-15 17:20:01", "level": "WARNING", "logger": "TestRunner", "message": "Assertion failed: assert False is True\n +  where False = reboot()\n +    where reboot = <automation.device_client.DeviceClient object at 0x000001E6624ACEC0>.reboot"}
+{"timestamp": "2026-06-15 17:20:01", "level": "INFO", "logger": "TestRunner", "message": "Retrying in 1.0s..."}
+{"timestamp": "2026-06-15 17:20:02", "level": "INFO", "logger": "TestRunner", "message": "Attempt 2/2..."}
+{"timestamp": "2026-06-15 17:20:02", "level": "INFO", "logger": "DeviceClient", "message": "Triggering target system reboot..."}
+{"timestamp": "2026-06-15 17:20:07", "level": "WARNING", "logger": "TestRunner", "message": "Assertion failed: assert False is True\n +  where False = reboot()\n +    where reboot = <automation.device_client.DeviceClient object at 0x000001E6624ACEC0>.reboot"}
+{"timestamp": "2026-06-15 17:20:07", "level": "ERROR", "logger": "TestRunner", "message": "--- Test FAILED: Boot Sequence Validation (Duration: 11.35s) ---"}
+{"timestamp": "2026-06-15 17:20:12", "level": "INFO", "logger": "DeviceClient", "message": "Log listener thread exited."}
+{"timestamp": "2026-06-15 17:20:12", "level": "INFO", "logger": "DeviceClient", "message": "DeviceClient connections closed."}
+{"timestamp": "2026-06-15 17:20:12", "level": "INFO", "logger": "DeviceClient", "message": "Connected to simulated console at 127.0.0.1:50007"}
+{"timestamp": "2026-06-15 17:20:12", "level": "INFO", "logger": "TestRunner", "message": "--- Starting Test: Memory Leak Diagnostic ---"}
+{"timestamp": "2026-06-15 17:20:12", "level": "INFO", "logger": "TestRunner", "message": "Description: Monitors target process memory growth during leak injection"}
+{"timestamp": "2026-06-15 17:20:12", "level": "INFO", "logger": "TestRunner", "message": "Attempt 1/1..."}
+{"timestamp": "2026-06-15 17:20:12", "level": "INFO", "logger": "DeviceClient", "message": "Triggering target system reboot..."}
+{"timestamp": "2026-06-15 18:16:09", "level": "INFO", "logger": "ModelTrainer", "message": "Starting ML Anomaly model training..."}
+{"timestamp": "2026-06-15 18:16:09", "level": "INFO", "logger": "ModelTrainer", "message": "Generated 2000 synthetic log entries for training."}
+{"timestamp": "2026-06-15 18:16:10", "level": "INFO", "logger": "ModelTrainer", "message": "Model fitted successfully. Detected 80 anomalies in training set."}
+{"timestamp": "2026-06-15 18:16:10", "level": "INFO", "logger": "ModelTrainer", "message": "Model saved to: ml_engine/models/anomaly_detector.pkl"}
+{"timestamp": "2026-06-15 18:16:10", "level": "INFO", "logger": "ModelTrainer", "message": "Vectorizer saved to: ml_engine/models/tfidf_vectorizer.pkl"}
+{"timestamp": "2026-06-15 18:16:15", "level": "INFO", "logger": "TestHistoryDB", "message": "SQLite Test History Database initialized."}
+{"timestamp": "2026-06-15 18:16:15", "level": "INFO", "logger": "TestFixture", "message": "C++ binary not found. Launching Python emulator fallback from: C:\\Users\\NADAF SISTERS\\Desktop\\shagfta visual studio code\\AI_AGENTIC_APP\\Electronics_Projects\\Project_1\\embedded_app\\device_emulator.py"}
+{"timestamp": "2026-06-15 18:16:16", "level": "INFO", "logger": "DeviceClient", "message": "Connected to simulated console at 127.0.0.1:50007"}
+{"timestamp": "2026-06-15 18:16:16", "level": "INFO", "logger": "TestRunner", "message": "--- Starting Test: Boot Sequence Validation ---"}
+{"timestamp": "2026-06-15 18:16:16", "level": "INFO", "logger": "TestRunner", "message": "Description: Verifies correct boot transitions and timings"}
+{"timestamp": "2026-06-15 18:16:16", "level": "INFO", "logger": "TestRunner", "message": "Attempt 1/2..."}
+{"timestamp": "2026-06-15 18:16:16", "level": "INFO", "logger": "DeviceClient", "message": "Triggering target system reboot..."}
+{"timestamp": "2026-06-15 18:16:21", "level": "WARNING", "logger": "TestRunner", "message": "Assertion failed: assert False is True\n +  where False = reboot()\n +    where reboot = <automation.device_client.DeviceClient object at 0x000001C8537201A0>.reboot"}
+{"timestamp": "2026-06-15 18:16:21", "level": "INFO", "logger": "TestRunner", "message": "Retrying in 1.0s..."}
+{"timestamp": "2026-06-15 18:16:22", "level": "INFO", "logger": "TestRunner", "message": "Attempt 2/2..."}
+{"timestamp": "2026-06-15 18:16:22", "level": "INFO", "logger": "DeviceClient", "message": "Triggering target system reboot..."}
+{"timestamp": "2026-06-15 18:16:27", "level": "WARNING", "logger": "TestRunner", "message": "Assertion failed: assert False is True\n +  where False = reboot()\n +    where reboot = <automation.device_client.DeviceClient object at 0x000001C8537201A0>.reboot"}
+{"timestamp": "2026-06-15 18:16:27", "level": "ERROR", "logger": "TestRunner", "message": "--- Test FAILED: Boot Sequence Validation (Duration: 11.27s) ---"}
+{"timestamp": "2026-06-15 18:16:32", "level": "INFO", "logger": "DeviceClient", "message": "Log listener thread exited."}
+{"timestamp": "2026-06-15 18:16:32", "level": "INFO", "logger": "DeviceClient", "message": "DeviceClient connections closed."}
+{"timestamp": "2026-06-15 18:16:32", "level": "INFO", "logger": "DeviceClient", "message": "Connected to simulated console at 127.0.0.1:50007"}
+{"timestamp": "2026-06-15 18:16:32", "level": "INFO", "logger": "TestRunner", "message": "--- Starting Test: Memory Leak Diagnostic ---"}
+{"timestamp": "2026-06-15 18:16:32", "level": "INFO", "logger": "TestRunner", "message": "Description: Monitors target process memory growth during leak injection"}
+{"timestamp": "2026-06-15 18:16:32", "level": "INFO", "logger": "TestRunner", "message": "Attempt 1/1..."}
+{"timestamp": "2026-06-15 18:16:32", "level": "INFO", "logger": "DeviceClient", "message": "Triggering target system reboot..."}

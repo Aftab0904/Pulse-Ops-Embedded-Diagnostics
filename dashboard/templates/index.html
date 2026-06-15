@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Embedded Linux Device Validation Console</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-primary: #080d1a;
+            --bg-glass: rgba(18, 26, 47, 0.65);
+            --bg-glass-hover: rgba(26, 37, 65, 0.8);
+            --border: rgba(255, 255, 255, 0.08);
+            --border-active: rgba(0, 210, 255, 0.4);
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --primary: #00d2ff;
+            --primary-glow: rgba(0, 210, 255, 0.15);
+            --secondary: #ff007f;
+            --secondary-glow: rgba(255, 0, 127, 0.15);
+            --success: #10b981;
+            --success-glow: rgba(16, 185, 129, 0.1);
+            --fail: #ef4444;
+            --fail-glow: rgba(239, 68, 68, 0.1);
+            --yellow: #f59e0b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-main);
+            overflow-x: hidden;
+            background-image: radial-gradient(circle at 10% 20%, rgba(0, 210, 255, 0.05) 0%, transparent 40%),
+                              radial-gradient(circle at 90% 80%, rgba(255, 0, 127, 0.05) 0%, transparent 40%);
+            background-attachment: fixed;
+            padding: 30px;
+        }
+
+        .container {
+            max-width: 1500px;
+            margin: 0 auto;
+        }
+
+        /* Top Header */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            letter-spacing: -0.04em;
+            background: linear-gradient(135deg, #fff 30%, var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            padding: 8px 16px;
+            border-radius: 9999px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--text-muted);
+            box-shadow: 0 0 8px var(--text-muted);
+        }
+
+        .status-badge.ONLINE .status-dot {
+            background-color: var(--success);
+            box-shadow: 0 0 10px var(--success);
+        }
+
+        .status-badge.OFFLINE .status-dot {
+            background-color: var(--fail);
+            box-shadow: 0 0 10px var(--fail);
+        }
+
+        /* Dashboard Grid Layout */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .card {
+            background: var(--bg-glass);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 22px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .card:hover {
+            border-color: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+        }
+
+        /* Span Helpers */
+        .span-2 { grid-column: span 2; }
+        .span-3 { grid-column: span 3; }
+        .span-4 { grid-column: span 4; }
+
+        /* KPI Stat Cards */
+        .kpi-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            grid-column: span 4;
+        }
+
+        .kpi-card {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .kpi-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+        }
+
+        .kpi-value {
+            font-size: 2.2rem;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+            margin-top: 5px;
+            line-height: 1;
+        }
+
+        .kpi-card:nth-child(1) .kpi-value { color: var(--primary); }
+        .kpi-card:nth-child(2) .kpi-value { color: var(--success); }
+        .kpi-card:nth-child(3) .kpi-value { color: var(--fail); }
+        .kpi-card:nth-child(4) .kpi-value { color: var(--secondary); }
+
+        /* Device Telemetry Live Panel */
+        .telemetry-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .tel-item {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border);
+            padding: 12px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .tel-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .tel-val {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        /* Failure Injector Controls */
+        .controls-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .btn {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn:hover {
+            background: var(--bg-glass-hover);
+            border-color: var(--primary);
+            box-shadow: 0 0 12px var(--primary-glow);
+        }
+
+        .btn-reboot {
+            border-color: var(--yellow);
+            color: #fff;
+            background: rgba(245, 158, 11, 0.05);
+        }
+
+        .btn-reboot:hover {
+            border-color: var(--yellow);
+            background: rgba(245, 158, 11, 0.15);
+            box-shadow: 0 0 12px rgba(245, 158, 11, 0.2);
+        }
+
+        .btn-fail {
+            border-color: var(--secondary);
+            background: rgba(255, 0, 127, 0.03);
+        }
+
+        .btn-fail:hover {
+            border-color: var(--secondary);
+            background: rgba(255, 0, 127, 0.12);
+            box-shadow: 0 0 12px var(--secondary-glow);
+        }
+
+        /* Live Logger Terminal */
+        .terminal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .terminal-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: var(--secondary);
+            display: inline-block;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.9); opacity: 0.7; }
+            50% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(0.9); opacity: 0.7; }
+        }
+
+        .terminal-box {
+            background-color: #030712;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            height: 330px;
+            padding: 16px;
+            overflow-y: auto;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            line-height: 1.5;
+            color: #38bdf8;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.8);
+        }
+
+        .terminal-line {
+            margin-bottom: 4px;
+            white-space: pre-wrap;
+        }
+
+        /* Tables & Lists */
+        h2 {
+            font-size: 1.15rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 12px;
+            font-size: 0.85rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            background: rgba(255, 255, 255, 0.01);
+        }
+
+        td {
+            font-weight: 500;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .tr-clickable {
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .tr-clickable:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .status-pill {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .status-pill.pass {
+            background: var(--success-glow);
+            color: var(--success);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .status-pill.fail {
+            background: var(--fail-glow);
+            color: var(--fail);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        /* Modal Details View */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(3, 7, 18, 0.8);
+            backdrop-filter: blur(8px);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: var(--bg-glass);
+            border: 1px solid var(--border);
+            width: 90%;
+            max-width: 900px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            max-height: 80%;
+        }
+
+        .modal-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.01);
+        }
+
+        .modal-body {
+            padding: 24px;
+            overflow-y: auto;
+        }
+
+        .close-btn {
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-muted);
+            transition: color 0.2s;
+        }
+
+        .close-btn:hover {
+            color: #fff;
+        }
+
+        /* Telemetry Chart container */
+        .chart-box {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Top header bar -->
+        <header>
+            <div>
+                <h1>Industrial Device Automation & Telemetry Console</h1>
+                <p class="subtitle">Embedded HW/SW Validation Pipeline Diagnostics Dashboard</p>
+            </div>
+            <div id="device-status-badge" class="status-badge {{ device_status }}">
+                <span class="status-dot"></span>
+                <span id="device-status-text">EMULATOR {{ device_status }}</span>
+            </div>
+        </header>
+
+        <!-- Main Dashboard Grid -->
+        <div class="dashboard-grid">
+            
+            <!-- KPI Counters -->
+            <div class="kpi-container">
+                <div class="card kpi-card">
+                    <span class="kpi-label">Total Pipelines</span>
+                    <span class="kpi-value">{{ stats.total_runs }}</span>
+                </div>
+                <div class="card kpi-card">
+                    <span class="kpi-label">Success Rate</span>
+                    <span class="kpi-value">{{ stats.success_rate | round(1) }}%</span>
+                </div>
+                <div class="card kpi-card">
+                    <span class="kpi-label">Passed Checks</span>
+                    <span class="kpi-value">{{ stats.passed_tests }}</span>
+                </div>
+                <div class="card kpi-card">
+                    <span class="kpi-label">ML Anomalies</span>
+                    <span class="kpi-value">{{ stats.total_anomalies }}</span>
+                </div>
+            </div>
+
+            <!-- Target Live Telemetry Metrics -->
+            <div class="card span-2">
+                <h2>Real-Time Emulator Telemetry</h2>
+                <p class="subtitle">Continuous status feedback from device registers</p>
+                <div class="telemetry-grid">
+                    <div class="tel-item">
+                        <div class="tel-label">System State</div>
+                        <div id="tel-boot" class="tel-val" style="color: var(--primary);">{{ target_telemetry.boot_stage or 'OFFLINE' }}</div>
+                    </div>
+                    <div class="tel-item">
+                        <div class="tel-label">CPU Temp</div>
+                        <div id="tel-temp" class="tel-val">{{ target_telemetry.temperature or 0.0 }}°C</div>
+                    </div>
+                    <div class="tel-item">
+                        <div class="tel-label">Core Voltage</div>
+                        <div id="tel-volt" class="tel-val">{{ target_telemetry.voltage or 0.0 }} V</div>
+                    </div>
+                    <div class="tel-item">
+                        <div class="tel-label">Injected Failure</div>
+                        <div id="tel-failure" class="tel-val" style="color: var(--secondary);">{{ target_telemetry.active_failure or 'none' }}</div>
+                    </div>
+                </div>
+                
+                <div class="chart-box">
+                    <canvas id="liveChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Failure Injection / Target Control Panel -->
+            <div class="card span-2">
+                <h2>Diagnostic Control interface</h2>
+                <p class="subtitle">Command hardware failure overrides and reboot routines</p>
+                <div class="controls-container">
+                    <button onclick="controlDevice('reboot')" class="btn btn-reboot">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                        Reboot target
+                    </button>
+                    <button onclick="injectFailure('SENSOR_TIMEOUT')" class="btn btn-fail">Sensor Timeout</button>
+                    <button onclick="injectFailure('MEMORY_LEAK')" class="btn btn-fail">Inject Memory Leak</button>
+                    <button onclick="injectFailure('NETWORK_DELAY')" class="btn btn-fail">Inject Net Latency</button>
+                    <button onclick="injectFailure('SEGFAULT')" class="btn btn-fail" style="border-color:#ef4444; background: rgba(239, 68, 68, 0.05);">Inject Segfault</button>
+                </div>
+                
+                <h2 style="margin-top: 25px;">Test Run Automation Command</h2>
+                <p class="subtitle">Execute pytest test suite commands via terminal shell</p>
+                <div style="margin-top: 12px; display:flex; gap:10px;">
+                    <div style="background: rgba(0,0,0,0.3); padding: 10px; border-radius: 8px; font-family:'JetBrains Mono', monospace; font-size: 0.8rem; border: 1px solid var(--border); flex:1; display:flex; align-items:center;">
+                        python -m pytest tests/ --html=reports/report_latest.html
+                    </div>
+                </div>
+            </div>
+
+            <!-- Scrolling Serial Log Monitor -->
+            <div class="card span-2">
+                <div class="terminal-header">
+                    <h2>Target Console Feed (UART SIM)</h2>
+                    <span style="font-size:0.75rem; color: var(--text-muted); display:flex; align-items:center; gap:6px;">
+                        <span class="terminal-dot"></span> Live Log Stream
+                    </span>
+                </div>
+                <div id="terminal" class="terminal-box">
+                    <!-- Logs yield here -->
+                </div>
+            </div>
+
+            <!-- Historical Pipelines Run Log -->
+            <div class="card span-2" style="overflow: hidden;">
+                <h2>Pipeline Run History</h2>
+                <p class="subtitle">Select a run row to view specific assertion details</p>
+                <div style="max-height: 330px; overflow-y: auto; margin-top: 10px;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Timestamp</th>
+                                <th>Passed / Total</th>
+                                <th>Anomaly Count</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for run in recent_runs %}
+                            <tr class="tr-clickable" onclick="showRunDetails({{ run.id }})">
+                                <td class="mono">#{{ run.id }}</td>
+                                <td>{{ run.timestamp }}</td>
+                                <td>
+                                    <span class="status-pill {% if run.failed_tests == 0 %}pass{% else %}fail{% endif %}">
+                                        {{ run.passed_tests }} / {{ run.total_tests }}
+                                    </span>
+                                </td>
+                                <td class="mono" style="color: var(--secondary);">{{ run.anomaly_count }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Test Run Modal -->
+    <div id="details-modal" class="modal" onclick="closeModal()">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h2 id="modal-title">Test Run Details</h2>
+                <span class="close-btn" onclick="closeModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <table id="modal-table">
+                    <thead>
+                        <tr>
+                            <th>Test Case</th>
+                            <th>Status</th>
+                            <th>Duration</th>
+                            <th>Avg CPU</th>
+                            <th>Avg RSS</th>
+                            <th>Max Temp</th>
+                            <th>Error Details</th>
+                        </tr>
+                    </thead>
+                    <tbody id="modal-tbody">
+                        <!-- Filled by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Live Chart Script -->
+    <script>
+        // Setup Chart.js live monitoring
+        const ctx = document.getElementById('liveChart').getContext('2d');
+        const liveChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [
+                    {
+                        label: 'CPU Load (%)',
+                        borderColor: '#00d2ff',
+                        backgroundColor: 'rgba(0, 210, 255, 0.05)',
+                        borderWidth: 1.5,
+                        data: [],
+                        tension: 0.3
+                    },
+                    {
+                        label: 'CPU Temp (°C)',
+                        borderColor: '#ff007f',
+                        backgroundColor: 'rgba(255, 0, 127, 0.05)',
+                        borderWidth: 1.5,
+                        data: [],
+                        tension: 0.3
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: { grid: { color: 'rgba(255,255,255,0.03)' } },
+                    y: { 
+                        min: 0,
+                        max: 100,
+                        grid: { color: 'rgba(255,255,255,0.03)' } 
+                    }
+                },
+                plugins: {
+                    legend: { labels: { color: '#9ca3af', boxWidth: 12 } }
+                }
+            }
+        });
+
+        // SSE connection for scrolling terminal logs
+        const eventSource = new EventSource('/api/logs/stream');
+        const terminal = document.getElementById('terminal');
+
+        eventSource.onmessage = function(event) {
+            const line = document.createElement('div');
+            line.className = 'terminal-line';
+            line.textContent = event.data;
+            
+            // Apply log level coloring
+            if (event.data.includes('[ERROR]')) {
+                line.style.color = '#ef4444';
+            } else if (event.data.includes('[WARN]')) {
+                line.style.color = '#f59e0b';
+            } else if (event.data.includes('[CRITICAL]')) {
+                line.style.color = '#ff007f';
+                line.style.fontWeight = 'bold';
+            } else if (event.data.includes('successful') || event.data.includes('READY')) {
+                line.style.color = '#10b981';
+            }
+            
+            terminal.appendChild(line);
+            terminal.scrollTop = terminal.scrollHeight;
+        };
+
+        // Poll status metrics every second
+        setInterval(function() {
+            fetch('/api/status')
+                .then(res => res.json())
+                .then(data => {
+                    const badge = document.getElementById('device-status-badge');
+                    const text = document.getElementById('device-status-text');
+                    
+                    if (data.status === 'ONLINE') {
+                        badge.className = 'status-badge ONLINE';
+                        text.textContent = 'EMULATOR ONLINE';
+                        
+                        // Update status values
+                        const tel = data.telemetry;
+                        document.getElementById('tel-boot').textContent = tel.boot_stage;
+                        document.getElementById('tel-temp').textContent = tel.temperature !== -999 ? tel.temperature.toFixed(1) + '°C' : 'TIMEOUT';
+                        document.getElementById('tel-volt').textContent = tel.voltage.toFixed(2) + ' V';
+                        document.getElementById('tel-failure').textContent = tel.active_failure;
+                        
+                        // Update Chart
+                        const timeLabel = new Date().toLocaleTimeString().slice(-8);
+                        liveChart.data.labels.push(timeLabel);
+                        liveChart.data.datasets[0].data.push(tel.cpu_load);
+                        liveChart.data.datasets[1].data.push(tel.temperature !== -999 ? tel.temperature : null);
+                        
+                        // Cap data points at 15
+                        if (liveChart.data.labels.length > 15) {
+                            liveChart.data.labels.shift();
+                            liveChart.data.datasets[0].data.shift();
+                            liveChart.data.datasets[1].data.shift();
+                        }
+                        liveChart.update('none'); // Update without animation for performance
+                    } else {
+                        badge.className = 'status-badge OFFLINE';
+                        text.textContent = 'EMULATOR OFFLINE';
+                        document.getElementById('tel-boot').textContent = 'OFFLINE';
+                        document.getElementById('tel-temp').textContent = '0.0°C';
+                        document.getElementById('tel-volt').textContent = '0.0 V';
+                        document.getElementById('tel-failure').textContent = 'none';
+                    }
+                });
+        }, 1000);
+
+        // Control Actions
+        function controlDevice(action) {
+            fetch('/api/control/' + action, { method: 'POST' })
+                .then(res => res.json())
+                .then(data => {
+                    if(!data.success) alert(data.message || 'Action failed');
+                });
+        }
+
+        function injectFailure(type) {
+            fetch('/api/control/inject_failure/' + type, { method: 'POST' })
+                .then(res => res.json())
+                .then(data => {
+                    if(!data.success) alert(data.message || 'Injection failed');
+                });
+        }
+
+        // Modal triggers
+        function showRunDetails(runId) {
+            fetch('/api/run/' + runId)
+                .then(res => res.json())
+                .then(results => {
+                    const tbody = document.getElementById('modal-tbody');
+                    tbody.innerHTML = '';
+                    
+                    document.getElementById('modal-title').textContent = 'Validation Assertions - Pipeline Run #' + runId;
+                    
+                    results.forEach(t => {
+                        const statusClass = t.status === 'PASSED' ? 'pass' : 'fail';
+                        const errMsg = t.error_message ? `<div style="color:var(--fail); font-family:monospace; font-size:0.75rem; white-space:pre-wrap; background:rgba(239, 68, 68, 0.05); padding:6px; border-radius:4px; border-left:2px solid var(--fail); max-width: 300px;">${t.error_message}</div>` : '';
+                        
+                        const row = `<tr>
+                            <td class="font-semibold">${t.name}</td>
+                            <td><span class="status-pill ${statusClass}">${t.status}</span></td>
+                            <td class="mono">${t.duration.toFixed(3)}s</td>
+                            <td class="mono">${t.cpu_avg.toFixed(1)}%</td>
+                            <td class="mono">${t.mem_avg.toFixed(1)} MB</td>
+                            <td class="mono">${t.temp_max.toFixed(1)}°C</td>
+                            <td>${errMsg}</td>
+                        </tr>`;
+                        tbody.innerHTML += row;
+                    });
+                    
+                    document.getElementById('details-modal').style.display = 'flex';
+                });
+        }
+
+        function closeModal() {
+            document.getElementById('details-modal').style.display = 'none';
+        }
+    </script>
+</body>
+</html>

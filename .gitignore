@@ -1,0 +1,30 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# C++ Build outputs
+build/
+device_emulator
+device_emulator.exe
+
+# Testing caches
+.pytest_cache/
+
+# Local logs
+logs/*.log
+logs/*.db
+logs/device_console.log
+
+# Matplotlib cache / output reports if generated locally
+reports/*.png
+reports/*.html
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# IDE settings
+.vscode/
+.idea/

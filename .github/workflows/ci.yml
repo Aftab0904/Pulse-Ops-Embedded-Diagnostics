@@ -1,0 +1,53 @@
+name: Embedded Linux Device Automation CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v3
+
+    - name: Set up GCC and CMake
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential cmake
+
+    - name: Build C++ Target Emulator
+      run: |
+        chmod +x scripts/build.sh
+        ./scripts/build.sh
+
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        cache: 'pip'
+
+    - name: Install Python Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Train ML Anomaly Detector
+      run: |
+        python ml_engine/trainer.py
+
+    - name: Run Validation PyTest Suite
+      run: |
+        python -m pytest tests/ -v
+
+    - name: Archive Test Reports
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: test-reports
+        path: |
+          reports/
+          logs/

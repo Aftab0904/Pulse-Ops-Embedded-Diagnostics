@@ -1,0 +1,38 @@
+{
+  "device": {
+    "connection_type": "socket",
+    "host": "127.0.0.1",
+    "port": 50007,
+    "serial_port": "COM3",
+    "baud_rate": 115200,
+    "ssh": {
+      "host": "127.0.0.1",
+      "port": 22,
+      "username": "root",
+      "password": "password"
+    }
+  },
+  "log": {
+    "level": "DEBUG",
+    "console_output": true,
+    "log_dir": "logs",
+    "max_bytes": 10485760,
+    "backup_count": 5
+  },
+  "thresholds": {
+    "max_cpu_percent": 85.0,
+    "max_memory_percent": 80.0,
+    "max_temperature_c": 75.0,
+    "voltage_nominal": 1.2,
+    "voltage_tolerance": 0.1
+  },
+  "ml": {
+    "model_path": "ml_engine/models/anomaly_detector.pkl",
+    "vectorizer_path": "ml_engine/models/tfidf_vectorizer.pkl",
+    "training_data_size": 2000,
+    "anomaly_threshold": -0.15
+  },
+  "database": {
+    "db_path": "reports/test_history.db"
+  }
+}
