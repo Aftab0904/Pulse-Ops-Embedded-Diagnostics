@@ -123,17 +123,24 @@ class DeviceClient:
             temp_sock.connect((self.host, self.port))
             temp_sock.sendall((cmd + "\n").encode("utf-8"))
             
-            # Read until newline
+            # Read until we receive a line that does not start with log prefix '['
+            buffer = ""
             response = ""
             while True:
                 chunk = temp_sock.recv(4096).decode("utf-8")
                 if not chunk:
                     break
-                response += chunk
-                if "\n" in chunk:
+                buffer += chunk
+                while "\n" in buffer:
+                    line, buffer = buffer.split("\n", 1)
+                    line_str = line.strip()
+                    if not line_str.startswith("["):
+                        response = line_str
+                        break
+                if response:
                     break
             temp_sock.close()
-            return response.strip()
+            return response
         except Exception as e:
             self.logger.error(f"Command socket communication failure: {e}")
             return ""
