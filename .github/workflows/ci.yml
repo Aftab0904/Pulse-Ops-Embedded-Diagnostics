@@ -37,7 +37,7 @@ jobs:
 
     - name: Train ML Anomaly Detector
       run: |
-        python ml_engine/trainer.py
+        python -m ml_engine.trainer
 
     - name: Run Validation PyTest Suite
       run: |
