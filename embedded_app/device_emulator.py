@@ -31,6 +31,7 @@ class PythonDeviceSimulator:
         self.client_socks = []
         self.clients_lock = threading.Lock()
         self.leak_buffer = []
+        self.current_boot_id = 0
         
         # Create log stream
         self.log_stream = open(self.log_filepath, "a", encoding="utf-8")
@@ -73,10 +74,11 @@ class PythonDeviceSimulator:
         self.temperature = 35.0
         self.voltage = 1.2
         self.leak_buffer = []
+        self.current_boot_id += 1
         self.log_write("INFO", "System reset/reboot command received.")
         
         # Restart boot thread
-        threading.Thread(target=self._run_boot_sequence, daemon=True).start()
+        threading.Thread(target=self._run_boot_sequence, args=(self.current_boot_id,), daemon=True).start()
 
     def inject_failure(self, failure_type: str):
         if failure_type == "MEMORY_LEAK":
@@ -109,11 +111,17 @@ class PythonDeviceSimulator:
             "active_failure": self.active_failure
         })
 
-    def _run_boot_sequence(self):
+    def _run_boot_sequence(self, boot_id):
+        if boot_id != self.current_boot_id:
+            return
+        self.boot_stage = "BOOTLOADER"
+        
         # Stage 1: Bootloader
         self.log_write("INFO", "Device boot sequence initiated.")
         self.log_write("INFO", "Bootloader version 2026.06.15-g10a5e89b9 loading...")
         time.sleep(1.0)
+        if boot_id != self.current_boot_id or not self.running:
+            return
         
         # Stage 2: Kernel Init
         self.boot_stage = "KERNEL_INIT"
@@ -121,14 +129,18 @@ class PythonDeviceSimulator:
         self.log_write("INFO", "Initializing RAM config: 512MB LPDDR4 detected.")
         self.log_write("INFO", "dmesg: [0.000000] Booting CPU 0x00 [hardware id 0x0]")
         time.sleep(1.5)
-
+        if boot_id != self.current_boot_id or not self.running:
+            return
+ 
         # Stage 3: Services Start
         self.boot_stage = "SERVICES_START"
         self.log_write("INFO", "Starting systemd init system (v252.22)...")
         self.log_write("INFO", "Starting networking service: dhcpd...")
         self.log_write("INFO", "Starting telemetry daemon: pulse-ops-agent...")
         time.sleep(1.0)
-
+        if boot_id != self.current_boot_id or not self.running:
+            return
+ 
         # Stage 4: Ready
         self.boot_stage = "READY"
         self.log_write("INFO", "Device boot successful. System enters READY state.")
@@ -148,7 +160,7 @@ class PythonDeviceSimulator:
                         self.log_write("CRITICAL", "MEMORY_CORRUPTION: Heap overflow detected in telemetry process.")
                         self.log_write("CRITICAL", "KERNEL_OUT_OF_MEMORY: systemd-oomd triggered.")
                         print("[CRITICAL] KERNEL_OUT_OF_MEMORY: OOM-killer invoked.", flush=True)
-                        os._exit(137)
+                        self.failure_memory_leak = False # Stop leak to stabilize memory, but do not exit!
                 else:
                     self.mem_usage = current_mem
 
@@ -223,8 +235,9 @@ class PythonDeviceSimulator:
         self.server_sock.listen(5)
         
         # Threads
+        self.current_boot_id += 1
         threading.Thread(target=self._accept_loop, daemon=True).start()
-        threading.Thread(target=self._run_boot_sequence, daemon=True).start()
+        threading.Thread(target=self._run_boot_sequence, args=(self.current_boot_id,), daemon=True).start()
         threading.Thread(target=self._telemetry_loop, daemon=True).start()
         
         self.log_write("INFO", f"Python Simulator Server listening on port {self.port}")

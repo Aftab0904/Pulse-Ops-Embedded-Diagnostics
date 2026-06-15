@@ -37,7 +37,7 @@ public:
     BootStage get_boot_stage() const;
 
 private:
-    void run_boot_sequence();
+    void run_boot_sequence(int boot_id);
     void telemetry_loop();
     void log_write(const std::string& level, const std::string& message);
 
@@ -45,6 +45,7 @@ private:
 
     SocketServer* socket_server_ = nullptr;
     std::atomic<bool> running_;
+    std::atomic<int> current_boot_id_{0};
     std::atomic<BootStage> boot_stage_;
     std::atomic<double> cpu_load_;
     std::atomic<double> mem_usage_;

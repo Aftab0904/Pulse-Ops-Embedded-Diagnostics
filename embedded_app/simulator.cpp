@@ -43,7 +43,8 @@ void DeviceSimulator::start() {
     running_ = true;
     
     // Start boot thread
-    boot_thread_ = std::thread(&DeviceSimulator::run_boot_sequence, this);
+    int boot_id = ++current_boot_id_;
+    boot_thread_ = std::thread(&DeviceSimulator::run_boot_sequence, this, boot_id);
     
     // Start telemetry monitoring thread
     telemetry_thread_ = std::thread(&DeviceSimulator::telemetry_loop, this);
@@ -72,18 +73,15 @@ void DeviceSimulator::reset() {
     temperature_ = 35.0;
     voltage_ = 1.2;
     log_write("INFO", "System reset/reboot command received.");
-    for (char* buf : leak_buffers_) {
-        delete[] buf;
-    }
-    leak_buffers_.clear();
 }
 
 void DeviceSimulator::trigger_reboot() {
     reset();
+    int boot_id = ++current_boot_id_;
     if (boot_thread_.joinable()) {
-        boot_thread_.join();
+        boot_thread_.detach();
     }
-    boot_thread_ = std::thread(&DeviceSimulator::run_boot_sequence, this);
+    boot_thread_ = std::thread(&DeviceSimulator::run_boot_sequence, this, boot_id);
 }
 
 void DeviceSimulator::inject_failure(const std::string& failure_type) {
@@ -126,12 +124,15 @@ BootStage DeviceSimulator::get_boot_stage() const {
     return boot_stage_.load();
 }
 
-void DeviceSimulator::run_boot_sequence() {
+void DeviceSimulator::run_boot_sequence(int boot_id) {
+    if (boot_id != current_boot_id_) return;
+    boot_stage_ = BootStage::BOOTLOADER;
+    
     // Stage 1: Bootloader
     log_write("INFO", "Device boot sequence initiated.");
     log_write("INFO", "Bootloader version 2026.06.15-g10a5e89b9 loading...");
     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-    if (!running_) return;
+    if (boot_id != current_boot_id_ || !running_) return;
 
     // Stage 2: Kernel Init
     boot_stage_ = BootStage::KERNEL_INIT;
@@ -139,7 +140,7 @@ void DeviceSimulator::run_boot_sequence() {
     log_write("INFO", "Initializing RAM config: 512MB LPDDR4 detected.");
     log_write("INFO", "dmesg: [0.000000] Booting CPU 0x00 [hardware id 0x0]");
     std::this_thread::sleep_for(std::chrono::milliseconds(1500));
-    if (!running_) return;
+    if (boot_id != current_boot_id_ || !running_) return;
 
     // Stage 3: Services Start
     boot_stage_ = BootStage::SERVICES_START;
@@ -147,7 +148,7 @@ void DeviceSimulator::run_boot_sequence() {
     log_write("INFO", "Starting networking service: dhcpd...");
     log_write("INFO", "Starting telemetry daemon: pulse-ops-agent...");
     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-    if (!running_) return;
+    if (boot_id != current_boot_id_ || !running_) return;
 
     // Stage 4: Ready
     boot_stage_ = BootStage::READY;
@@ -184,7 +185,7 @@ void DeviceSimulator::telemetry_loop() {
                     log_write("CRITICAL", "MEMORY_CORRUPTION: Heap overflow detected in telemetry process.");
                     log_write("CRITICAL", "KERNEL_OUT_OF_MEMORY: systemd-oomd triggered.");
                     std::cout << "[CRITICAL] KERNEL_OUT_OF_MEMORY: OOM-killer invoked." << std::endl;
-                    std::exit(137); // Simulated exit with OOM killer code
+                    failure_memory_leak_ = false; // Stop leak to stabilize memory, but do not exit!
                 }
             } else {
                 mem_usage_ = current_mem;
