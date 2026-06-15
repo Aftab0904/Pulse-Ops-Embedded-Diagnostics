@@ -80,6 +80,10 @@ void DeviceSimulator::reset() {
 
 void DeviceSimulator::trigger_reboot() {
     reset();
+    if (boot_thread_.joinable()) {
+        boot_thread_.join();
+    }
+    boot_thread_ = std::thread(&DeviceSimulator::run_boot_sequence, this);
 }
 
 void DeviceSimulator::inject_failure(const std::string& failure_type) {
