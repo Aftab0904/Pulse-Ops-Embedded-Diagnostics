@@ -1,10 +1,12 @@
 #include "simulator.hpp"
+#include "socket_server.hpp"
 #include <iostream>
 #include <chrono>
 #include <sstream>
 #include <iomanip>
 #include <random>
 #include <cstdlib>
+#include <cstring>
 
 DeviceSimulator::DeviceSimulator(const std::string& log_filepath)
     : running_(false),
@@ -30,6 +32,10 @@ DeviceSimulator::~DeviceSimulator() {
     if (log_stream_.is_open()) {
         log_stream_.close();
     }
+    for (char* buf : leak_buffers_) {
+        delete[] buf;
+    }
+    leak_buffers_.clear();
 }
 
 void DeviceSimulator::start() {
@@ -66,6 +72,10 @@ void DeviceSimulator::reset() {
     temperature_ = 35.0;
     voltage_ = 1.2;
     log_write("INFO", "System reset/reboot command received.");
+    for (char* buf : leak_buffers_) {
+        delete[] buf;
+    }
+    leak_buffers_.clear();
 }
 
 void DeviceSimulator::trigger_reboot() {
@@ -160,6 +170,12 @@ void DeviceSimulator::telemetry_loop() {
             if (failure_memory_leak_) {
                 // Keep incrementing memory consumption
                 mem_usage_ = mem_usage_ + 6.5;
+                try {
+                    char* leak = new char[10 * 1024 * 1024];
+                    std::memset(leak, 0, 10 * 1024 * 1024);
+                    leak_buffers_.push_back(leak);
+                } catch (const std::bad_alloc&) {
+                }
                 if (mem_usage_ >= 95.0) {
                     log_write("CRITICAL", "MEMORY_CORRUPTION: Heap overflow detected in telemetry process.");
                     log_write("CRITICAL", "KERNEL_OUT_OF_MEMORY: systemd-oomd triggered.");

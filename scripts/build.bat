@@ -5,7 +5,7 @@ echo ===========================================
 
 if not exist build mkdir build
 cd build
-cmake ..
+cmake ../embedded_app
 cmake --build . --config Release
 cd ..
 

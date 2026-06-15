@@ -6,6 +6,7 @@
 #include <mutex>
 #include <atomic>
 #include <fstream>
+#include <vector>
 
 enum class BootStage {
     BOOTLOADER,
@@ -61,6 +62,7 @@ private:
     std::mutex log_mutex_;
     std::string log_file_;
     std::ofstream log_stream_;
+    std::vector<char*> leak_buffers_;
 };
 
 #endif // SIMULATOR_HPP

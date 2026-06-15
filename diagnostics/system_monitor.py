@@ -25,10 +25,15 @@ class SystemMonitor:
         """Locates the target process by name and returns its psutil.Process object."""
         # Check both Windows and Linux executable extensions
         names_to_check = [self.target_name, f"{self.target_name}.exe"]
-        for proc in psutil.process_iter(['pid', 'name']):
+        for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
             try:
                 if proc.info['name'] in names_to_check:
                     return proc
+                cmdline = proc.info.get('cmdline')
+                if cmdline:
+                    cmdline_str = " ".join(cmdline)
+                    if "device_emulator" in cmdline_str or "device_emulator.py" in cmdline_str:
+                        return proc
             except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
                 pass
         return None

@@ -5,7 +5,7 @@ echo "==========================================="
 
 mkdir -p build
 cd build
-cmake ..
+cmake ../embedded_app
 make
 cd ..
 

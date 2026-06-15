@@ -30,6 +30,7 @@ class PythonDeviceSimulator:
         self.server_sock = None
         self.client_socks = []
         self.clients_lock = threading.Lock()
+        self.leak_buffer = []
         
         # Create log stream
         self.log_stream = open(self.log_filepath, "a", encoding="utf-8")
@@ -71,6 +72,7 @@ class PythonDeviceSimulator:
         self.mem_usage = 25.0
         self.temperature = 35.0
         self.voltage = 1.2
+        self.leak_buffer = []
         self.log_write("INFO", "System reset/reboot command received.")
         
         # Restart boot thread
@@ -141,6 +143,7 @@ class PythonDeviceSimulator:
 
                 if self.failure_memory_leak:
                     self.mem_usage += 6.5
+                    self.leak_buffer.append(bytearray(10 * 1024 * 1024))
                     if self.mem_usage >= 95.0:
                         self.log_write("CRITICAL", "MEMORY_CORRUPTION: Heap overflow detected in telemetry process.")
                         self.log_write("CRITICAL", "KERNEL_OUT_OF_MEMORY: systemd-oomd triggered.")

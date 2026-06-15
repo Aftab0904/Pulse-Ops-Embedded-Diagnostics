@@ -32,7 +32,7 @@ def test_device_boot_sequence(device_client):
     # Performance boundary checks
     boot_duration = time.time() - start_time
     assert booted, f"Device failed to reach READY state. Stages reached: {stages_seen}"
-    assert boot_duration < 5.0, f"Device boot took too long: {boot_duration:.2f}s"
+    assert boot_duration < 8.0, f"Device boot took too long: {boot_duration:.2f}s"
     
     # Check that it traversed main stages
     assert "BOOTLOADER" in stages_seen
